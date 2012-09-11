@@ -41,6 +41,12 @@ module Lograge
     def process_action_logstash(data)
       event = LogStash::Event.new("@fields" => data)
       event.to_json
+      message = "[END]   #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
+      message << extract_status(payload)
+      message << runtimes(event)
+      message << location(event)
+      message << custom_options(event)
+      logger.info(message)
     end
 
     def redirect_to(event)
