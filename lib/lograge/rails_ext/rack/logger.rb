@@ -2,14 +2,15 @@ require 'rails/rack/logger'
 
 module Rails
   module Rack
-    # Overwrites defaults of Rails::Rack::Logger that cause
-    # unnecessary logging.
-    # This effectively removes the log lines from the log
-    # that say:
+    # Makes 
     # Started GET / for 192.168.2.1...
+    # look more like lograge's output
     class Logger
       # Overwrites Rails 3.2 code that logs new requests
       def call_app(env)
+        request = ActionDispatch::Request.new(env)
+        path = request.filtered_path
+        Rails.logger.info "[START] #{request.request_method} #{path}"
         @app.call(env)
       ensure
         ActiveSupport::LogSubscriber.flush_all!
