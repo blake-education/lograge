@@ -5,11 +5,12 @@ module Lograge
   class RequestLogSubscriber < ActiveSupport::LogSubscriber
     def process_action(event)
       payload = event.payload
-      message = "[END]   #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
+      message = "[END] #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
       message << extract_status(payload)
       message << runtimes(event)
       message << location(event)
       message << custom_options(event)
+      message << add_params(payload)
       logger.info(message)
     end
 
@@ -29,6 +30,21 @@ module Lograge
         " status=0"
       end
     end
+
+    INTERNAL_PARAMS = %w(controller action format _method only_path)
+    def add_params(payload)
+      params = (payload[:params] || {}).except(*INTERNAL_PARAMS)
+      if params.present?
+        message = " params=("
+        params.each do |name,value|
+          message << " #{name}=#{value}"
+        end
+        message + " )"
+      else
+        ""
+      end
+    end
+
 
     def custom_options(event)
       message = ""
