@@ -46,6 +46,7 @@ module Lograge
       message << runtimes(event)
       message << location(event)
       message << custom_options(event)
+      message << add_params(payload)
       logger.info(message)
     end
 
