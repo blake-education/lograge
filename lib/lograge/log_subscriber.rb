@@ -6,7 +6,7 @@ module Lograge
     def process_action(event)
       payload = event.payload
 
-      message = "method=#{payload[:method]} path=#{payload[:path]} format=#{extract_format(payload)} controller=#{payload[:params]['controller']} action=#{payload[:params]['action']}"
+      message = "[END] #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
 
       message << extract_status(payload)
       message << runtimes(event)
@@ -21,14 +21,6 @@ module Lograge
     end
 
     private
-
-    def extract_format(payload)
-      if ::ActionPack::VERSION::MINOR == 0
-        payload[:formats].first
-      else
-        payload[:format]
-      end
-    end
 
     def extract_status(payload)
       if payload[:status]
