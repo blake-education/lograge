@@ -1,4 +1,4 @@
-Lograge - Taming Rails' Default Request Logging
+Lograge - Taming Rails' Default Request Logging [![Build Status](https://travis-ci.org/blake-education/lograge.png?branch=master)](https://travis-ci.org/blake-education/lograge)
 =======
 
 Lograge is an attempt to bring sanity to Rails' noisy and unusable, unparsable
