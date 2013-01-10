@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/hash'
 require 'active_support/log_subscriber'
 
 module Lograge
@@ -11,13 +12,14 @@ module Lograge
       data.merge! runtimes(event)
       data.merge! location(event)
       data.merge! custom_options(event)
+      data.merge! add_params(payload)
 
       logger.info send(:"process_action_#{Lograge.log_format}", data)
     end
 
     LOGRAGE_FIELDS = [
       :method, :path, :format, :controller, :action, :status, :error,
-      :duration, :view, :db, :location
+      :duration, :view, :db, :location, :params
     ]
     def process_action_lograge(data)
       fields  = LOGRAGE_FIELDS
@@ -41,13 +43,14 @@ module Lograge
     def process_action_logstash(data)
       event = LogStash::Event.new("@fields" => data)
       event.to_json
-      message = "[END]   #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
-      message << extract_status(payload)
-      message << runtimes(event)
-      message << location(event)
-      message << custom_options(event)
-      message << add_params(payload)
-      logger.info(message)
+      # TODO this bit looks suspect
+      # message = "[END]   #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
+      # message << extract_status(payload)
+      # message << runtimes(event)
+      # message << location(event)
+      # message << custom_options(event)
+      # message << add_params(payload)
+      # logger.info(message)
     end
 
     def redirect_to(event)
@@ -93,16 +96,9 @@ module Lograge
     def add_params(payload)
       params = (payload[:params] || {}).except(*INTERNAL_PARAMS)
       if params.present?
-        message = " params=("
-        params.each do |name,value|
-          message << " #{name}=#{value}"
-        end
-        message + " )"
-      else
-        ""
+        {:params => params.each {|name,value| " #{name}=#{value}"} }
       end
     end
-
 
     def custom_options(event)
       Lograge.custom_options(event) || {}
