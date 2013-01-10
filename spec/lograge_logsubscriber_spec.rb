@@ -80,6 +80,11 @@ describe Lograge::RequestLogSubscriber do
       log_output.string.should =~ /db=0.02/
     end
 
+    it "should include parameters" do
+      subscriber.process_action(event)
+      log_output.string.should =~ /params={"foo"=>"bar"}/
+    end
+
     it "should add a 500 status when an exception occurred" do
       event.payload[:status] = nil
       event.payload[:exception] = ['AbstractController::ActionNotFound', 'Route not found']
