@@ -97,6 +97,8 @@ module Lograge
       params = (payload[:params] || {}).except(*INTERNAL_PARAMS)
       if params.present?
         {:params => params.each {|name,value| " #{name}=#{value}"} }
+      else
+        {}
       end
     end
 
