@@ -52,7 +52,7 @@ describe Lograge::RequestLogSubscriber do
 
     it "should start the log line with the HTTP method" do
       subscriber.process_action(event)
-      log_output.string.starts_with?('method=GET ').should == true
+      log_output.string.starts_with?('[END]   GET ').should == true
     end
 
     it "should include the status code" do
@@ -82,7 +82,7 @@ describe Lograge::RequestLogSubscriber do
 
     it "should include parameters" do
       subscriber.process_action(event)
-      log_output.string.should =~ /params={"foo"=>"bar"}/
+      log_output.string.should =~ /params='{"foo"=>"bar"}'/
     end
 
     it "should add a 500 status when an exception occurred" do
