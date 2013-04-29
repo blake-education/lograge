@@ -18,39 +18,36 @@ module Lograge
     end
 
     LOGRAGE_FIELDS = [
-      :method, :path, :format, :controller, :action, :status, :error,
+      :format, :controller, :action, :status, :error,
       :duration, :view, :db, :location, :params
     ]
+    SKIP_FIELDS = [:method, :path]
+    QUOTE_FIELDS = [
+      :error, :params
+    ]
+
     def process_action_lograge(data)
       fields  = LOGRAGE_FIELDS
-      fields += (data.keys - LOGRAGE_FIELDS)
+      fields += (data.keys - LOGRAGE_FIELDS - SKIP_FIELDS)
 
       event = fields.inject([]) do |message, key|
         next message unless data.has_key?(key)
         # Exactly preserve the previous output
         # Parsing this can be ambigious if the error messages contains
         # a single quote
-        data[key] = "'#{data[key]}'" if key == :error
+        data[key] = "'#{data[key]}'" if QUOTE_FIELDS.include?(key)
         # Ensure that we always have exactly two decimals
         data[key] = "%.2f" % data[key] if data[key].is_a? Float
 
         message << "#{key}=#{data[key]}"
         message
       end
-      event.join(" ")
+      "[END]   #{data[:method]} #{data[:path]} #{event.join(" ")}"
     end
 
     def process_action_logstash(data)
       event = LogStash::Event.new("@fields" => data)
       event.to_json
-      # TODO this bit looks suspect
-      # message = "[END]   #{payload[:method]} #{payload[:path]} format=#{payload[:format]} action=#{payload[:params]['controller']}##{payload[:params]['action']}"
-      # message << extract_status(payload)
-      # message << runtimes(event)
-      # message << location(event)
-      # message << custom_options(event)
-      # message << add_params(payload)
-      # logger.info(message)
     end
 
     def redirect_to(event)
@@ -96,7 +93,7 @@ module Lograge
     def add_params(payload)
       params = (payload[:params] || {}).except(*INTERNAL_PARAMS)
       if params.present?
-        {:params => params.each {|name,value| " #{name}=#{value}"} }
+        {:params => params}
       else
         {}
       end
